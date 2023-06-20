@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -27,6 +28,7 @@ public class EncBot {
     public int[] prevTicks = new int[3];
 
     public double[] pose = new double[3];
+    BNO055IMU imu;
 
     public void init(HardwareMap hwMap){
         String[] motorNames =  new String[]{"back_left_motor", "front_left_motor", "front_right_motor", "back_right_motor"};
@@ -35,6 +37,10 @@ public class EncBot {
         motors[1].setDirection(DcMotorSimple.Direction.REVERSE);
         String[] encoderNames = new String[]{"enc_right", "enc_left", "enc_x"};
         for (int i=0; i<3; i++) encoders[i] = hwMap.get(DcMotorEx.class, encoderNames[i]);
+        imu = hwMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters params = new BNO055IMU.Parameters();
+        params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        imu.initialize(params);
     }
 
     public void setDrivePower(double px, double py, double pa){
@@ -48,10 +54,10 @@ public class EncBot {
         for (int i=0; i<4; i++) motors[i].setPower(p[i]);
     }
 
-    public void resetOdometry(double x, double y, double headingRadians){
+    public void resetOdometry(double x, double y, double headingDegrees){
         pose[0] = x;
         pose[1] = y;
-        pose[2] = headingRadians;
+        pose[2] = headingDegrees;
         for (int i=0; i<3; i++) prevTicks[i] = encoders[i].getCurrentPosition();
     }
 
@@ -70,9 +76,10 @@ public class EncBot {
         double avgHeadingRadians = pose[2] + headingChangeRadians / 2.0;
         double cos = Math.cos(avgHeadingRadians);
         double sin = Math.sin(avgHeadingRadians);
-        pose[0] += dxR*sin + dyR*cos;
-        pose[1] += -dxR*cos + dyR*sin;
-        pose[2] = AngleUtils.normalizeRadians(pose[2] + headingChangeRadians);
+        pose[1] += dxR*sin + dyR*cos;
+        pose[0] += 0-(-dxR*cos + dyR*sin);
+//        pose[2] = AngleUtils.normalizeDegrees(pose[2] + Math.toDegrees(headingChangeRadians));
+        pose[2] = -imu.getAngularOrientation().firstAngle;
         return pose;
     }
 
