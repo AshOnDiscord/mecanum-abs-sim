@@ -79,8 +79,9 @@ public class EncBot {
         pose[1] += dxR*sin + dyR*cos;
         pose[0] += 0-(-dxR*cos + dyR*sin);
 //        pose[2] = AngleUtils.normalizeDegrees(pose[2] + Math.toDegrees(headingChangeRadians));
-        pose[2] = -imu.getAngularOrientation().firstAngle;
-        return pose;
+        pose[2] = imu.getAngularOrientation().firstAngle;
+        double[] poseCopy = {pose[0], pose[1], -pose[2]};
+        return poseCopy;
     }
 
     public double[] getPose(){

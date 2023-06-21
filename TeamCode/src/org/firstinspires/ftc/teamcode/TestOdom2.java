@@ -31,17 +31,19 @@ public class TestOdom2 extends LinearOpMode {
 //            double py = -gamepad1.left_stick_y;
 //            double pa = gamepad1.left_trigger - gamepad1.right_trigger;
 //            bot.setDrivePower(px, py, pa);
-//        absoluteMove(new Pos(30, 30));
-//        sleep(1000);
+        absoluteMove(new Pos(30, 30));
+        sleep(100);
 //        absoluteMove(new Pos(15, -30));
 //        sleep(1000);
-//        absoluteMove(new Pos(0, 0));
-//        sleep(1000);
+        absoluteMove(new Pos(0, 0));
+        sleep(100);
 ////        while (opModeIsActive()) {
 //        updateTelemetry();
-        rotate(12);
+        rotate(5);
         sleep(100);
-//        rotate(180);
+//        Pos a = ab(new Pos(30,30), new Pose(0,0,45));
+//        System.out.println(a.x + " E " + a.y);
+////        rotate(180);
         absoluteMove(new Pos(30, 30));
 //        sleep(1000);
 //        absoluteMove(new Pos(15, -30));
@@ -57,11 +59,17 @@ public class TestOdom2 extends LinearOpMode {
         dir = ab(target, new Pose(pose[0], pose[1], pose[2]));
         double tolerance = 1;
         while (opModeIsActive()) {
-            if (Math.abs(pose[0] - target.x) > tolerance || Math.abs(pose[1] - target.y) > tolerance) {
+            if (Math.abs(target.x - pose[0]) > tolerance || Math.abs(target.y - pose[1]) > tolerance) {
+                if (Math.abs(target.x - pose[0]) > tolerance) {
+                    System.out.println("x: " + pose[0] + " " + target.x + " " + Math.abs(target.x - pose[0]));
+                }
+                if (Math.abs(target.y - pose[1]) > tolerance) {
+                    System.out.println("y: " + pose[1] + " " + target.y + " " + Math.abs(target.y - pose[1]));
+                }
 //            if (!opModeIsActive()) return;
                 pose = bot.updateOdometry();
                 // Pos dir = ab(new Pos(-5,5), new Pose(0,0,90));
-                dir = ab(target, new Pose(start[0], start[1], start[2]));
+//                dir = ab(target, new Pose(start[0], start[1], start[2]));
 //                dir = ab(target, new Pose(pose[0], pose[1], pose[2]));
 //            dir = ab(new Pos(30,30), new Pose(0,0,0));
 
@@ -76,14 +84,41 @@ public class TestOdom2 extends LinearOpMode {
                 // -30 -10
 //            y = target.y + dir.y - pose[1];
 //            y = start[1] + (target.y + dir.y) - pose[1];
-                x = (start[0] + (target.x + dir.x) - pose[0]) * 1.1;
+//                x = (start[0] + (target.x + dir.x) - pose[0]) * 1.1;
 //                x = ((target.x - pose[0]) + dir.x) * 1.1;
                 // 30 - 0 + 30 = 60
                 // 30 - 10 = 23;
 //            x = (dir.x - pose[0]) * 1.1;
-                y = dir.y - pose[1];
+//                y = dir.y - pose[1];
+
+                double xBase = dir.x - start[0];
+                // 30 - 0
+                double yBase = target.y - (dir.y - start[1]);
+                // 30 - (30 - 0) = 0
+
+                double xDist = Math.sqrt(Math.pow(xBase, 2) + Math.pow(dir.y - start[1], 2));
+                double yDist = Math.sqrt(Math.pow(target.x - xBase, 2) + Math.pow(yBase, 2));
+                double deno = Math.max(Math.abs(xDist), Math.abs(yDist));
+                xDist /= deno;
+                yDist /= deno;
+//                if (pose[2] >= 45 - 1) {
+                    double t = xDist;
+                    xDist = yDist;
+                    yDist = t;
+//                }
+                double x = pose[0] < target.x ? Math.abs(xDist) : -Math.abs(xDist);
+                double y = pose[1] < target.y ? Math.abs(yDist) : -Math.abs(yDist);
+                if (Math.abs(target.x - pose[0]) < 2) {
+                    x = x/6;
+//                    System.out.println("x");
+                }
+                if (Math.abs(target.y - pose[1]) < 2) {
+                    y = y/6;
+//                    System.out.println("y");
+                }
                 double rx = 0;
-//            System.out.println(x + " " + y);
+//                System.out.println(x + " " + y + " " + dir.x + " " + dir.y);
+//                System.out.println(xBase + " | " + yBase + " | " + xDist + " | " + yDist + " | " + deno);
 //            System.out.println();
 
                 // // Denominator is the largest motor power (absolute value) or 1
@@ -133,7 +168,7 @@ public class TestOdom2 extends LinearOpMode {
 
     public void rotate(float target) {
         float rotation = -bot.imu.getAngularOrientation().firstAngle;
-        float tolerance = 2;
+        float tolerance = 0.5f;
         float delay = 12.5f;
         float attempts = 160;
         // snappier
@@ -234,10 +269,10 @@ public class TestOdom2 extends LinearOpMode {
         // 1/900 = 0.001
         // 0*0+1
 //        System.out.println(a3 + " | " + u + " | " + v + " | " + RHS1 + " | " + RHS2 + " | " + x3 + " | " + y3);
-        System.out.println(-x3 + " " + y3);
+        System.out.println(x3 + " " + y3);
 
 //        return new Pos(x3, -y3);
-        return new Pos(-x3, y3);
+        return new Pos(x3, y3);
     }
 
     public static class Pose {
