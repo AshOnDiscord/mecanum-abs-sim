@@ -33,19 +33,24 @@ public class TestOdom2 extends LinearOpMode {
 //            bot.setDrivePower(px, py, pa);
 //            updateTelemetry();
 //        }
+        for (float i = 0; i <= 360; i+= 22.5) {
+            rotate(90 - i);
+            testPos();
+        }
+    }
+
+    public void testPos() {
+        sleep(500);
         absoluteMove(new Pos(25, 25));
         sleep(500);
         absoluteMove(new Pos(25/2f, -25));
         sleep(500);
-        absoluteMove(new Pos(0, 0));
+        absoluteMove(new Pos(-25/2f, 25/2f));
         sleep(500);
-        rotate(45/2f);
-        sleep(500);
-        absoluteMove(new Pos(25, 25));
-        sleep(500);
-        absoluteMove(new Pos(25/2f, -25));
+        absoluteMove(new Pos(-25, -25/2f));
         sleep(500);
         absoluteMove(new Pos(0, 0));
+        sleep(500);
     }
 
     public void absoluteMove(Pos target) {
