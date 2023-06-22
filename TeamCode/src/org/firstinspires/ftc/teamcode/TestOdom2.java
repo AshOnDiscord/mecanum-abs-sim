@@ -18,7 +18,7 @@ public class TestOdom2 extends LinearOpMode {
 
     public void runOpMode() {
         bot.init(hardwareMap);
-        bot.resetOdometry(0, 0, bot.imu.getAngularOrientation().firstAngle);
+        bot.resetOdometry(0, 0, 90);
 //        bot.resetOdometry(0, 0, 45);
 
         while (!opModeIsActive() && !isStopRequested()) {
@@ -33,17 +33,17 @@ public class TestOdom2 extends LinearOpMode {
 //            bot.setDrivePower(px, py, pa);
 //            updateTelemetry();
 //        }
-        absoluteMove(new Pos(30, 30));
+        absoluteMove(new Pos(25, 25));
         sleep(500);
-        absoluteMove(new Pos(15, -30));
+        absoluteMove(new Pos(25/2f, -25));
         sleep(500);
         absoluteMove(new Pos(0, 0));
         sleep(500);
-        rotate(45);
+        rotate(45/2f);
         sleep(500);
-        absoluteMove(new Pos(30, 30));
+        absoluteMove(new Pos(25, 25));
         sleep(500);
-        absoluteMove(new Pos(15, -30));
+        absoluteMove(new Pos(25/2f, -25));
         sleep(500);
         absoluteMove(new Pos(0, 0));
     }
@@ -53,7 +53,8 @@ public class TestOdom2 extends LinearOpMode {
         double[] start = {pose[0], pose[1], pose[2]};
 //        double[] start = {0, 0, 45};
 
-        double angleToTarget2 = Math.toDegrees(Math.atan((target.x - start[0]) / (target.y - start[1])));
+//        double angleToTarget2 = Math.toDegrees(Math.atan((target.x - start[0]) / (target.y - start[1])));
+        double angleToTarget2 = Math.toDegrees(Math.atan2(target.y-start[1], target.x-start[0]));
         double angleToAngle2 = angleToTarget2 - start[2];
         double dist2 = Math.sqrt(Math.pow(target.x - start[0], 2) + Math.pow(target.y - start[1], 2));
         double x2 = Math.sin(Math.toRadians(angleToAngle2));
@@ -70,28 +71,14 @@ public class TestOdom2 extends LinearOpMode {
 //                    System.out.println("y: " + pose[1] + " " + target.y + " " + Math.abs(target.y - pose[1]));
 //                }
                 pose = bot.updateOdometry();
-                double angleToTarget = Math.toDegrees(Math.atan((target.x - start[0]) / (target.y - start[1])));
+                double angleToTarget = Math.toDegrees(Math.atan2(target.y-start[1], target.x-start[0]));
                 double angleToAngle = angleToTarget - start[2];
                 double dist = Math.sqrt(Math.pow(target.x - start[0], 2) + Math.pow(target.y - start[1], 2));
-                double x = Math.sin(Math.toRadians(angleToAngle));
-                double y = Math.cos(Math.toRadians(angleToAngle));
+                double x = -Math.toDegrees(Math.sin(Math.toRadians(angleToAngle)));
+                double y = Math.toDegrees(Math.cos(Math.toRadians(angleToAngle)));
                 double rx = 0;
                 double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
 
-                if (pose[0] > target.x + 1.5) {
-                    if (pose[2] >= 45 - 1) {
-                        y = -y;
-                    } else {
-                        x = -x;
-                    }
-                }
-                if (pose[1] > target.y + 1.5) {
-                    if (pose[2] >= 45 - 1) {
-                        x = -x;
-                    } else {
-                        y = -y;
-                    }
-                }
 //                System.out.println("\u001B[33m" + x + " " + y + " | " + dir.x + " " + dir.y + "\u001B[0m");
 //                System.out.println("\u001B[32m" + xBase + " " + yBase + " | " + xDist + " " + yDist + " | " + deno + "\u001B[0m");
 
@@ -137,12 +124,14 @@ public class TestOdom2 extends LinearOpMode {
         telemetry.addData("X Enc", "T = %d  V = %.0f", bot.encoders[2].getCurrentPosition(), bot.encoders[2].getVelocity());
         telemetry.addData("dir ", "x = %.1f  y = %.1f", dir.x, dir.y);
         telemetry.addData("move ", "x = %.1f  y = %.1f", x, y);
-        telemetry.addData("IMU POSE", -bot.imu.getAngularOrientation().firstAngle);
+        telemetry.addData("IMU POSE", bot.imu.getAngularOrientation().firstAngle);
         telemetry.update();
     }
 
     public void rotate(float target) {
-        float rotation = -bot.imu.getAngularOrientation().firstAngle;
+//        float rotation = bot.imu.getAngularOrientation().firstAngle;
+        pose = bot.updateOdometry();
+        float rotation = (float) pose[2];
         float tolerance = 0.5f;
         float delay = 12.5f;
         float attempts = 160;
@@ -158,8 +147,10 @@ public class TestOdom2 extends LinearOpMode {
         float lastError = 0;
         while (opModeIsActive()) {
             if (Math.abs(target - rotation) > tolerance) {
-                rotation = -bot.imu.getAngularOrientation().firstAngle;
-                float error = ((target - rotation + 540) % 360) - 180;
+//                rotation = bot.imu.getAngularOrientation().firstAngle;
+                pose = bot.updateOdometry();
+                rotation = (float) pose[2];
+                float error = -((target - rotation + 540) % 360) - 180;
                 if (Math.abs(error) > 180) {
                     if (error > 0) {
                         error -= 360;
@@ -181,9 +172,10 @@ public class TestOdom2 extends LinearOpMode {
                 telemetry.addData("p", kp * error);
                 telemetry.addData("i", ki * i);
                 telemetry.addData("d", kd * d);
-                telemetry.addData("first", -bot.imu.getAngularOrientation().firstAngle);
-                telemetry.addData("second", -bot.imu.getAngularOrientation().secondAngle);
-                telemetry.addData("third", -bot.imu.getAngularOrientation().thirdAngle);
+                telemetry.addData("angle", pose[2]);
+//                telemetry.addData("first", -bot.imu.getAngularOrientation().firstAngle);
+//                telemetry.addData("second", -bot.imu.getAngularOrientation().secondAngle);
+//                telemetry.addData("third", -bot.imu.getAngularOrientation().thirdAngle);
                 telemetry.update();
                 bot.motors[1].setPower(power);
                 bot.motors[0].setPower(power);

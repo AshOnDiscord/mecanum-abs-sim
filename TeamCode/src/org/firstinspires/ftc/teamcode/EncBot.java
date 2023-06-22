@@ -79,11 +79,11 @@ public class EncBot {
         pose[0] += dxR*sin + dyR*cos;
         pose[1] += -dxR*cos + dyR*sin;
         pose[2] = AngleUtils.normalizeRadians(pose[2] + headingChangeRadians);
-        return new double[]{-pose[1], pose[0], -Math.toDegrees(pose[2])};
+        return new double[]{pose[0], pose[1], Math.toDegrees(pose[2])};
     }
 
-    public double[] getPose(){
-        return new double[]{-pose[1], pose[0], -Math.toDegrees(pose[2])};
+    public double[] getPoses(){
+        return new double[]{-pose[1], pose[0], Math.toDegrees(pose[2])};
     }
 
 }
