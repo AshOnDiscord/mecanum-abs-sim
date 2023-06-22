@@ -24,11 +24,11 @@ public class EncBot {
 
     public final DcMotorEx[] motors = new DcMotorEx[4]; //back_left, front_left, front_right, back_right
     public final DcMotorEx[] encoders = new DcMotorEx[3]; //right, left, X
+    public BNO055IMU imu;
 
     public int[] prevTicks = new int[3];
 
     public double[] pose = new double[3];
-    BNO055IMU imu;
 
     public void init(HardwareMap hwMap){
         String[] motorNames =  new String[]{"back_left_motor", "front_left_motor", "front_right_motor", "back_right_motor"};
@@ -57,7 +57,7 @@ public class EncBot {
     public void resetOdometry(double x, double y, double headingDegrees){
         pose[0] = x;
         pose[1] = y;
-        pose[2] = headingDegrees;
+        pose[2] = Math.toRadians(headingDegrees);
         for (int i=0; i<3; i++) prevTicks[i] = encoders[i].getCurrentPosition();
     }
 
@@ -76,16 +76,14 @@ public class EncBot {
         double avgHeadingRadians = pose[2] + headingChangeRadians / 2.0;
         double cos = Math.cos(avgHeadingRadians);
         double sin = Math.sin(avgHeadingRadians);
-        pose[1] += dxR*sin + dyR*cos;
-        pose[0] += 0-(-dxR*cos + dyR*sin);
-//        pose[2] = AngleUtils.normalizeDegrees(pose[2] + Math.toDegrees(headingChangeRadians));
-        pose[2] = imu.getAngularOrientation().firstAngle;
-        double[] poseCopy = {pose[0], pose[1], -pose[2]};
-        return poseCopy;
+        pose[0] += dxR*sin + dyR*cos;
+        pose[1] += -dxR*cos + dyR*sin;
+        pose[2] = AngleUtils.normalizeRadians(pose[2] + headingChangeRadians);
+        return new double[]{-pose[1], pose[0], -Math.toDegrees(pose[2])};
     }
 
     public double[] getPose(){
-        return pose;
+        return new double[]{-pose[1], pose[0], -Math.toDegrees(pose[2])};
     }
 
 }
