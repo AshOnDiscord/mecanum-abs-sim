@@ -46,80 +46,61 @@ public class TestOdom2 extends LinearOpMode {
 
     public void absoluteMove(Pos target) {
         pose = bot.updateOdometry();
-        double[] start = {pose[0], pose[1], pose[2]};
-        dir = ab(target, new Pose(pose[0], pose[1], pose[2]));
-        System.out.println(dir.x + " " + dir.y + " | " + start[0] + " " + start[1] + " | " + target.x + " " + target.y);
-        double tolerance = 1;
-        while (opModeIsActive()) {
-            if (Math.abs(target.x - pose[0]) > tolerance || Math.abs(target.y - pose[1]) > tolerance) {
-                if (Math.abs(target.x - pose[0]) > tolerance) {
-//                    System.out.println("x: " + pose[0] + " " + target.x + " " + Math.abs(target.x - pose[0]));
-                }
-                if (Math.abs(target.y - pose[1]) > tolerance) {
-//                    System.out.println("y: " + pose[1] + " " + target.y + " " + Math.abs(target.y - pose[1]));
-                }
-                pose = bot.updateOdometry();
-                double xBase = dir.x - start[0];
-                // 0 - 30 = - 30
-                // 30 - 0
-                double yBase = target.y - (dir.y - start[1]);
-                // 30 - (30 - 0) = 0
+//        double[] start = {pose[0], pose[1], pose[2]};
+        double[] start = {0, 0, 45};
 
-                double xDist = Math.sqrt(Math.pow(xBase, 2) + Math.pow(dir.y - start[1], 2));
-                double yDist = Math.sqrt(Math.pow(target.x - xBase, 2) + Math.pow(yBase, 2));
-                double deno = Math.max(Math.abs(xDist), Math.abs(yDist));
-                xDist /= deno;
-                yDist /= deno;
-//                if (pose[2] >= 45 - 1) {
-                    double t = xDist;
-                    xDist = yDist;
-                    yDist = t;
-//                }
-//                double x = pose[0] < target.x + tolerance * 1.5 ? Math.abs(xDist) : -Math.abs(xDist);
-//                double y = pose[1] < target.y + tolerance * 1.5 ? Math.abs(yDist) : -Math.abs(yDist);
-                double x = pose[0] < target.x + tolerance * 1.5 ? xDist : -xDist;
-                double y = pose[1] < target.y + tolerance * 1.5 ? yDist : -yDist;
-                if (Math.abs(target.x - pose[0]) < 2) {
-                    x = x/6;
-//                    System.out.println("x");
-                }
-                if (Math.abs(target.y - pose[1]) < 2) {
-                    y = y/6;
-//                    System.out.println("y");
-                }
-                double rx = 0;
-                System.out.println("\u001B[33m" + x + " " + y + " | " + dir.x + " " + dir.y + "\u001B[0m");
-                System.out.println("\u001B[32m" + xBase + " " + yBase + " | " + xDist + " " + yDist + " | " + deno + "\u001B[0m");
-//            System.out.println();
-
-                // // Denominator is the largest motor power (absolute value) or 1
-                // // This ensures all the powers maintain the same ratio, but only when
-                // // at least one is out of the range [-1, 1]
-                double frontLeftPower = (y + x + rx);
-                double backLeftPower = (y - x + rx);
-                double frontRightPower = (y - x - rx);
-                double backRightPower = (y + x - rx);
-                double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-                frontLeftPower = frontLeftPower / denominator;
-                backLeftPower = backLeftPower / denominator;
-                frontRightPower = frontRightPower / denominator;
-                backRightPower = backRightPower / denominator;
-
-                bot.motors[1].setPower(frontLeftPower);
-                bot.motors[0].setPower(backLeftPower);
-                bot.motors[2].setPower(frontRightPower);
-                bot.motors[3].setPower(backRightPower);
-                updateTelemetry();
-
-                sleep(50);
-            } else {
-                break;
-            }
-        }
-        bot.motors[1].setPower(0);
-        bot.motors[0].setPower(0);
-        bot.motors[2].setPower(0);
-        bot.motors[3].setPower(0);
+        double angleToTarget2 = Math.toDegrees(Math.atan((target.x - start[0]) / (target.y - start[1])));
+        double angleToAngle2 = angleToTarget2 - start[2];
+        double dist2 = Math.sqrt(Math.pow(target.x - start[0], 2) + Math.pow(target.y - start[1], 2));
+        double x2 = Math.cos(Math.toRadians(angleToAngle2));
+        double y2 = Math.sin(Math.toRadians(angleToAngle2));
+        System.out.println(angleToTarget2 + " " + angleToAngle2 + " | " + x2 + " " + y2 + " | " + dist2 + " | " + (dist2 * x2) + " " + (dist2 * y2));
+        return;
+//        double tolerance = 1;
+//        while (opModeIsActive()) {
+//            if (Math.abs(target.x - pose[0]) > tolerance || Math.abs(target.y - pose[1]) > tolerance) {
+////                if (Math.abs(target.x - pose[0]) > tolerance) {
+////                    System.out.println("x: " + pose[0] + " " + target.x + " " + Math.abs(target.x - pose[0]));
+////                }
+////                if (Math.abs(target.y - pose[1]) > tolerance) {
+////                    System.out.println("y: " + pose[1] + " " + target.y + " " + Math.abs(target.y - pose[1]));
+////                }
+//                pose = bot.updateOdometry();
+//                double angleToTarget = Math.tan((target.x - pose[0]) / (target.y - pose[1]));
+//                double x = Math.cos(pose[0] - angleToTarget);
+//                double y = Math.sin(pose[0] - angleToTarget);
+//                double rx = 0;
+//                double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+////                System.out.println("\u001B[33m" + x + " " + y + " | " + dir.x + " " + dir.y + "\u001B[0m");
+////                System.out.println("\u001B[32m" + xBase + " " + yBase + " | " + xDist + " " + yDist + " | " + deno + "\u001B[0m");
+//
+//                // // Denominator is the largest motor power (absolute value) or 1
+//                // // This ensures all the powers maintain the same ratio, but only when
+//                // // at least one is out of the range [-1, 1]
+//                double frontLeftPower = (y + x + rx);
+//                double backLeftPower = (y - x + rx);
+//                double frontRightPower = (y - x - rx);
+//                double backRightPower = (y + x - rx);
+//                frontLeftPower = frontLeftPower / denominator;
+//                backLeftPower = backLeftPower / denominator;
+//                frontRightPower = frontRightPower / denominator;
+//                backRightPower = backRightPower / denominator;
+//
+//                bot.motors[1].setPower(frontLeftPower);
+//                bot.motors[0].setPower(backLeftPower);
+//                bot.motors[2].setPower(frontRightPower);
+//                bot.motors[3].setPower(backRightPower);
+//                updateTelemetry();
+//
+////                sleep(50);
+//            } else {
+//                break;
+//            }
+//        }
+//        bot.motors[1].setPower(0);
+//        bot.motors[0].setPower(0);
+//        bot.motors[2].setPower(0);
+//        bot.motors[3].setPower(0);
     }
 
     public void updateTelemetry() {
